@@ -17,17 +17,17 @@ echo "model_path: ${model_path}"
 echo "save_path: ${save_path}"
 
 
-train_files="/opt/tiger/dwn-opensource-verl/mbti/mbti_data/train_with_token.parquet"
-val_files="/opt/tiger/dwn-opensource-verl/mbti/mbti_data/test_with_token.parquet"
+train_files="/opt/tiger/dwn-opensource-verl/mbti_data/train.parquet"
+val_files="/opt/tiger/dwn-opensource-verl/mbti_data/test.parquet"
 
 torchrun --standalone --nnodes=1 --nproc_per_node=${nproc_per_node} \
-     -m verl.trainer.fsdp_sft_trainer_multi \
+     -m verl.trainer.fsdp_sft_trainer \
      data.train_files=${train_files} \
      data.val_files=${val_files} \
      data.prompt_key="instruction" \
      data.response_key="output" \
-     data.prompt_dict_keys=null \
-     data.response_dict_keys=null \
+     +data.prompt_dict_keys=null \
+     +data.response_dict_keys=null \
      optim.lr=1e-4 \
      data.micro_batch_size_per_gpu=4 \
      model.partial_pretrain=${model_path} \
@@ -40,6 +40,3 @@ torchrun --standalone --nnodes=1 --nproc_per_node=${nproc_per_node} \
      model.lora_rank=8 \
      model.lora_alpha=16 \
      model.target_modules=all-linear
-
-
-
