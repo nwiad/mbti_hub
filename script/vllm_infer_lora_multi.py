@@ -90,7 +90,7 @@ def main(args):
         model=merged_model_save_path,
         dtype=dtype,
         tensor_parallel_size=tp_size,
-        gpu_memory_utilization=0.7,
+        gpu_memory_utilization=args.gpu_memory_utilization,
         trust_remote_code=True
     )
 
@@ -147,6 +147,7 @@ if __name__ == "__main__":
     parser.add_argument("--dtype", type=str, default="bf16")
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--tp_size", type=int, default=4)
+    parser.add_argument("--gpu_memory_utilization", type=float, default=0.7)
     parser.add_argument("--merged_model_save_path", type=str, required=True)
 
 
