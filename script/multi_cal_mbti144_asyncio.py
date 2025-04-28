@@ -11,9 +11,24 @@ import argparse
 import time
 
 import asyncio
+import httpx
 
-API_KEY = "sk-92a191ff740d4771953c4049083d6720"
-URL = "https://api.deepseek.com"
+# API_KEY = "sk-92a191ff740d4771953c4049083d6720"
+# URL = "https://api.deepseek.com"
+# MODEL = "deepseek-chat"
+
+API_KEY= "sk-r0WeYOdkMjzYdnSxEcC8B931Aa904e4bBaCcAc2a57D803F1"
+URL = "https://svip.xty.app/v1"
+MODEL = "gpt-4o-mini"
+
+client = AsyncOpenAI(
+    base_url=URL,
+    api_key=API_KEY,
+    http_client=httpx.AsyncClient(
+        base_url="https://svip.xty.app/v1",
+        follow_redirects=True,
+    ),
+)
 
 
 TEMPLATE_DS = """
@@ -25,7 +40,7 @@ TEMPLATE_DS = """
 
 async def get_response(prompt, client):
     response = await client.chat.completions.create(
-        model="deepseek-chat",
+        model=MODEL,
         messages=[
             # {"role": "system", "content": "You are a helpful assistant"},
             {"role": "user", "content": prompt},
@@ -59,9 +74,10 @@ async def search_letter(text, optiona, optionb, client):
         option_a=optiona,
         option_b=optionb
     )
+    await asyncio.sleep(1.0) 
     res = await get_response(prompt_ds, client)
-    print(f"prompt: {prompt_ds}")
-    print(f"response: {res}")
+    # print(f"prompt: {prompt_ds}")
+    # print(f"response: {res}")
 
     if res[0] == "A" or res[0] == "B":
         return res[0]
@@ -225,7 +241,6 @@ def main(args):
     target_type_list = []
     score_list = [None] * len(os.listdir(file_folder))
     answers_list = [None] * len(os.listdir(file_folder))
-    client = AsyncOpenAI(api_key=API_KEY, base_url=URL)
 
     for file in os.listdir(file_folder):
         df_list.append(pd.read_parquet(os.path.join(file_folder, file)))
