@@ -1,0 +1,36 @@
+-----------------------PROMPT RESULTS ----------------------------
+prompts_results_plus: prompt_characteristic final result: 0.6067612942612945
+prompts_results_multiply: prompt_characteristic final result: 2.040725244664465
+-----------------------TYPE RESULTS ----------------------------
+type_results_plus: ENTP final result: 0.5730769230769229
+type_results_plus: ISTJ final result: 0.6501831501831501
+type_results_plus: ENTJ final result: 0.6137362637362638
+type_results_plus: ESTP final result: 0.5994505494505494
+type_results_plus: INTP final result: 0.6087912087912088
+type_results_plus: ISTP final result: 0.5802197802197802
+type_results_plus: ESFP final result: 0.6208791208791208
+type_results_plus: INFJ final result: 0.5888278388278387
+type_results_plus: ISFP final result: 0.6087912087912088
+type_results_plus: ESTJ final result: 0.6230769230769231
+type_results_plus: ENFP final result: 0.5802197802197802
+type_results_plus: ISFJ final result: 0.6095238095238095
+type_results_plus: ESFJ final result: 0.5866300366300367
+type_results_plus: ENFJ final result: 0.5816849816849817
+type_results_plus: INFP final result: 0.615934065934066
+type_results_plus: INTJ final result: 0.62014652014652
+type_results_multiply: ENTP final result: 2.260384367816911
+type_results_multiply: ISTJ final result: 1.7400410577699572
+type_results_multiply: ENTJ final result: 2.020254835614212
+type_results_multiply: ESTP final result: 2.1062336879896524
+type_results_multiply: INTP final result: 2.007832315615655
+type_results_multiply: ISTP final result: 2.219141409282862
+type_results_multiply: ESFP final result: 1.943714758491878
+type_results_multiply: INFJ final result: 2.126036315285832
+type_results_multiply: ISFP final result: 2.007832315615655
+type_results_multiply: ESTJ final result: 1.902471799957829
+type_results_multiply: ENFP final result: 2.2004520270942374
+type_results_multiply: ISFJ final result: 1.9915054223282262
+type_results_multiply: ESFJ final result: 2.1721353669069314
+type_results_multiply: ENFJ final result: 2.1907419347611636
+type_results_multiply: INFP final result: 1.9633805530448212
+type_results_multiply: INTJ final result: 1.9793808943912625
