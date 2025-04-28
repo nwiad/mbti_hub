@@ -13,11 +13,11 @@ import time
 import asyncio
 import httpx
 
-# API_KEY = "sk-92a191ff740d4771953c4049083d6720"
+# API_KEY = ""
 # URL = "https://api.deepseek.com"
 # MODEL = "deepseek-chat"
 
-API_KEY= "sk-r0WeYOdkMjzYdnSxEcC8B931Aa904e4bBaCcAc2a57D803F1"
+API_KEY= ""
 URL = "https://svip.xty.app/v1"
 MODEL = "gpt-4o-mini"
 

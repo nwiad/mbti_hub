@@ -9,7 +9,7 @@ from openai import OpenAI
 import argparse
 import time
 
-API_KEY = "sk-92a191ff740d4771953c4049083d6720"
+API_KEY = ""
 URL = "https://api.deepseek.com"
 
 
