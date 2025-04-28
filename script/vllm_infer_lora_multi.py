@@ -8,26 +8,27 @@ import argparse
 import time
 from datetime import datetime
 import os
+from verl.utils.fs import copy_local_path_from_hdfs
 
 
-typelist=(
-     "ENFJ"
-     "ENFP"
-     "ISTP"  
-     "ESTP" 
-     "ISFJ"
-     "ISFP" 
-     "ESFJ" 
-     "ESFP"
-     "INTP" 
-     "ENTP" 
-     "INFJ" 
-     "INFP"
-     "ENTJ" 
-     "INTJ" 
-     "ESTJ" 
+typelist=[
+     "ENFJ",
+     "ENFP",
+     "ISTP", 
+     "ESTP",
+     "ISFJ",
+     "ISFP",
+     "ESFJ",
+     "ESFP",
+     "INTP",
+     "ENTP",
+     "INFJ",
+     "INFP",
+     "ENTJ",
+     "INTJ",
+     "ESTJ",
      "ISTJ"
-)
+]
 
 
 def main(args):
@@ -64,7 +65,9 @@ def main(args):
 
     # LORA！！！！
     base_model_path = args.base_model
+    base_model_path = copy_local_path_from_hdfs(base_model_path)
     lora_adapter_path = args.model
+    lora_adapter_path = copy_local_path_from_hdfs(lora_adapter_path)
     merged_model_save_path = args.merged_model_save_path
 
 
@@ -100,14 +103,15 @@ def main(args):
         temperature=args.temperature,
         top_p=args.top_p,
         max_tokens=args.max_tokens,
-        seed=42
+        seed=42,
+        skip_special_tokens=False
     )
 
     for target_type in typelist:
         print("Processing type:", target_type)
         print("-"*100)
         timestamp=time.strftime("%m%d_%H%M")
-        output_path=f"../output/mbti_Q_144_bf16/multi/Qwen2.5-7B-Instruct/multi_{target_type}_{timestamp}.parquet"
+        output_path=f"/opt/tiger/dwn-opensource-verl/mbti_hub/output/answer/multi_{target_type}_{timestamp}.parquet"
         print(f"Output path: {output_path}")
         print("-"*100)
 
@@ -127,7 +131,7 @@ def main(args):
                 tokenize=False, 
                 add_generation_prompt=True) for prompt in prompts]
             outputs = llm.generate(prompts_with_chat_template, sampling_params)
-            test_prompt_list.extend(prompt_with_chat_template[0] for prompt_with_chat_template in prompts_with_chat_template)
+            test_prompt_list.extend(prompt_with_chat_template for prompt_with_chat_template in prompts_with_chat_template)
             output_list.extend([output.outputs[0].text for output in outputs])
         df['test_prompt'] = test_prompt_list
         df["output"] = output_list

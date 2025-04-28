@@ -4,10 +4,13 @@ import json
 import math
 import re
 from collections import Counter
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
+from tqdm.asyncio import tqdm
 
 import argparse
 import time
+
+import asyncio
 
 API_KEY = "sk-92a191ff740d4771953c4049083d6720"
 URL = "https://api.deepseek.com"
@@ -20,8 +23,8 @@ TEMPLATE_DS = """
    [option B]: {option_b}
    Return directly to the specific option A or B. Note the answer should be in the format of 'A' or 'B'.""" 
 
-def get_response(prompt, client):
-    response = client.chat.completions.create(
+async def get_response(prompt, client):
+    response = await client.chat.completions.create(
         model="deepseek-chat",
         messages=[
             # {"role": "system", "content": "You are a helpful assistant"},
@@ -50,13 +53,13 @@ def find_opposite_type(type):
     elif type == "P":
         return "J"
 
-def search_letter(text, optiona, optionb, client):
+async def search_letter(text, optiona, optionb, client):
     prompt_ds = TEMPLATE_DS.format(
         text=text,
         option_a=optiona,
         option_b=optionb
     )
-    res = get_response(prompt_ds, client)
+    res = await get_response(prompt_ds, client)
     print(f"prompt: {prompt_ds}")
     print(f"response: {res}")
 
@@ -212,23 +215,33 @@ def main(args):
     train_type = args.train_type
     
     file_folder = f"/opt/tiger/dwn-opensource-verl/mbti_hub/output/answer"
-    output_folder = f"/opt/tiger/dwn-opensource-verl/mbti_hub/score/answer_seq"
+    output_folder = f"/opt/tiger/dwn-opensource-verl/mbti_hub/score/answer"
     label_data = read_json('/opt/tiger/dwn-opensource-verl/mbti_data/mbti_Q_144.json')
+
+    os.makedirs(output_folder, exist_ok=True)
     
+    mbti_test = MBTITest()
+    df_list = []
+    target_type_list = []
+    score_list = [None] * len(os.listdir(file_folder))
+    answers_list = [None] * len(os.listdir(file_folder))
+    client = AsyncOpenAI(api_key=API_KEY, base_url=URL)
 
     for file in os.listdir(file_folder):
-        df = pd.read_parquet(os.path.join(file_folder, file))
-        df.head()
+        df_list.append(pd.read_parquet(os.path.join(file_folder, file)))
         file_name = file.replace(".parquet", "")
-        print(file_name)
         if train_type[0] == "p":
             # prompt类型
             target_type = file_name.split("_")[1]
         else:
             # 训练的模型
             target_type = file_name.split("_")[0]
-        prompt_type = train_type
+        target_type_list.append(target_type)
 
+    for i in range(len(os.listdir(file_folder))):
+        df = df_list[i]
+        target_type = target_type_list[i]
+        prompt_type = train_type
 
         # 获得选项A或B的回答 
         # answers = []
@@ -241,26 +254,31 @@ def main(args):
         # print(answers)
 
 
-        print("get answer!!!!!!!!!!")
+        # print("get answer!!!!!!!!!!")
         # 处理直接回答问题的情况
-        client = OpenAI(api_key=API_KEY, base_url=URL)
-        answers = []
-        for i, row in df.iterrows():
-            x = row["output"]
-            answers.append(search_letter(x, label_data[i]["option_a"], label_data[i]["option_b"],client))
-        print(f"{answers=}")
+        # answers = []
+        # for i, row in df.iterrows():
+        #     x = row["output"]
+        #     answers.append(search_letter(x, label_data[i]["option_a"], label_data[i]["option_b"], client))
+        # print(f"{answers=}")
 
-        # 计算得分
-        mbti_test = MBTITest()
-        score = mbti_test.get_mbti_result(target_type, prompt_type, answers)
-        # print(score)
+        async def task(df, client):
+            tasks = [search_letter(row['output'], label_data[id]["option_a"], label_data[id]["option_b"], client)
+                    for id, row in df.iterrows()]
+            return await tqdm.gather(*tasks)
+        answers = asyncio.run(task(df=df, client=client))
+        answers_list[i] = answers
 
-        os.makedirs(output_folder, exist_ok=True)
+    for i in range(len(os.listdir(file_folder))):
+        target_type = target_type_list[i]
+        prompt_type = train_type
+        answers = answers_list[i]
+        score_list[i] = mbti_test.get_mbti_result(target_type, prompt_type, answers)
 
-        with open(f"{output_folder}/mbti_score_new.jsonl", "a") as fout:
+    with open(f"{output_folder}/mbti_score_new.jsonl", "a") as fout:
+        for score in score_list:
             json.dump(score, fout)
             fout.write("\n")
-
 
 
     # 从mbti_score_new.jsonl读取 
