@@ -8,6 +8,7 @@ import argparse
 import time
 from datetime import datetime
 from sklearn.metrics import accuracy_score
+from verl.utils.fs import copy_local_path_from_hdfs
 
 import os
 
@@ -114,37 +115,42 @@ def main(args):
 
 
     # LORA！！！！
-    base_model_path = args.base_model
-    lora_adapter_path = args.model
-    merged_model_save_path = args.merged_model_save_path
 
+    base_model_path = args.base_model
+    base_model_path = copy_local_path_from_hdfs(base_model_path)
+    # lora_adapter_path = args.model
+    # lora_adapter_path = copy_local_path_from_hdfs(lora_adapter_path)
+
+    merged_model_save_path = args.merged_model_save_path
 
     base_model = AutoModelForCausalLM.from_pretrained(
         base_model_path, 
         torch_dtype=torch.bfloat16, 
         trust_remote_code=True)
-    model = PeftModel.from_pretrained(
-        base_model, 
-        lora_adapter_path, 
-        trust_remote_code=True)
+    # model = PeftModel.from_pretrained(
+    #     base_model, 
+    #     lora_adapter_path, 
+    #     trust_remote_code=True)
 
-    merged_model = model.merge_and_unload()
+    # merged_model = model.merge_and_unload()
 
     # 保存合并后的模型
-    merged_model.save_pretrained(merged_model_save_path, safe_serialization=True)
+    # merged_model.save_pretrained(merged_model_save_path, safe_serialization=True)
 
-    # ✅ 必须显式保存 tokenizer！
+    # # ✅ 必须显式保存 tokenizer！
     tokenizer = AutoTokenizer.from_pretrained(base_model_path, trust_remote_code=True)
+    # tokenizer.save_pretrained(merged_model_save_path)
+
 
     llm = LLM(
-        model=merged_model_save_path,
+        model=base_model_path,
         dtype=dtype,
         tensor_parallel_size=tp_size,
         gpu_memory_utilization=0.5,
         trust_remote_code=True
     )
 
-    print(f"Model loaded from {model} using {tp_size} GPUs")
+    # print(f"Model loaded from {model} using {tp_size} GPUs")
 
     sampling_params = SamplingParams(
         temperature=args.temperature,
@@ -181,8 +187,7 @@ def main(args):
             outputs = llm.generate(prompts_with_chat_template, sampling_params)
             test_prompt_list.extend(prompt_with_chat_template for prompt_with_chat_template in prompts_with_chat_template)
             output_list.extend([output.outputs[0].text for output in outputs])
-        df['test_prompt'] = test_prompt_list
-        df["output"] = output_list
+        
 
         gold = [e["answer"].lower() for e in df]
         correct = [int(p == g) for p, g in zip(output_list, gold)]
@@ -191,7 +196,10 @@ def main(args):
         print(f"now MBTI type is {target_type}")
         print(f"ToMi QA Accuracy: {accuracy:.2%}")
 
-        df.to_parquet(output_path)
+        new_df = pd.DataFrame(df)
+        new_df['test_prompt'] = test_prompt_list
+        new_df["output"] = output_list
+        new_df.to_parquet(output_path)
         
 
 if __name__ == "__main__":
